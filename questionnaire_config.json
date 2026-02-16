@@ -1,0 +1,469 @@
+{
+  "meta": {
+    "title": "Peptide Therapy Intake",
+    "version": "1.0"
+  },
+  "sections": [
+    {
+      "id": "patient_info",
+      "title": "Patient Information",
+      "questions": [
+        {
+          "id": "patient_name",
+          "text": "Full Name",
+          "type": "text"
+        },
+        {
+          "id": "patient_dob",
+          "text": "Date of Birth",
+          "type": "date"
+        },
+        {
+          "id": "patient_sex",
+          "text": "Biological Sex",
+          "type": "single_choice",
+          "options": [
+            {
+              "label": "Male",
+              "value": "male"
+            },
+            {
+              "label": "Female",
+              "value": "female"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "product_selection",
+      "title": "Product Selection",
+      "questions": [
+        {
+          "id": "category_select",
+          "text": "What is your category of interest?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Body Composition & Anti-Aging (Growth Hormone)",
+              "value": "cat_gh",
+              "next_module": "mod_gh_select"
+            },
+            {
+              "label": "Repair & Recovery (BPC/TB-500/GHK)",
+              "value": "cat_repair",
+              "next_module": "mod_repair_select"
+            },
+            {
+              "label": "Weight Loss (GLP-1s)",
+              "value": "cat_weight",
+              "next_module": "mod_weight_select"
+            },
+            {
+              "label": "Sexual Health",
+              "value": "cat_sex",
+              "next_module": "mod_sex_select"
+            },
+            {
+              "label": "Nutrient Injections (Glutathione, NAD+, B12)",
+              "value": "cat_nutrient",
+              "next_module": "mod_nutrient_select"
+            },
+            {
+              "label": "Other / Unsure",
+              "value": "other"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "common_screening",
+      "title": "General Health Screening",
+      "questions": [
+        {
+          "id": "prev_peptide_use",
+          "text": "Have you previously received Peptides?",
+          "type": "yes_no",
+          "follow_up": {
+            "yes": {
+              "id": "prev_peptide_details",
+              "text": "Which ones?",
+              "type": "text"
+            }
+          }
+        },
+        {
+          "id": "curr_peptide_use",
+          "text": "Are you currently receiving Peptides elsewhere?",
+          "type": "yes_no",
+          "follow_up": {
+            "yes": {
+              "id": "curr_peptide_details",
+              "text": "What dosage form (injectable, oral, other) and dose?",
+              "type": "text"
+            }
+          }
+        },
+        {
+          "id": "severe_allergy",
+          "text": "Have you ever had a severe allergic reaction to Peptides?",
+          "type": "yes_no",
+          "follow_up": {
+            "yes": {
+              "id": "allergy_details",
+              "text": "Which ones?",
+              "type": "text",
+              "flag": "consult"
+            }
+          }
+        },
+        {
+          "id": "cancer_history",
+          "text": "Do you currently have cancer or a history of cancer?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop"
+          }
+        },
+        {
+          "id": "pregnant_breastfeeding",
+          "text": "Are you Pregnant or Breastfeeding?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop"
+          }
+        },
+        {
+          "id": "professional_athlete",
+          "text": "Are you a professional Athlete?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop",
+            "message": "WADA-World Anti Doping Agency has banned peptide use."
+          }
+        },
+        {
+          "id": "severe_organ_disease",
+          "text": "Have you been diagnosed with severe heart condition, uncontrolled high blood pressure, kidney disease, or liver disease?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop"
+          }
+        }
+      ]
+    }
+  ],
+  "product_modules": {
+    "mod_gh_select": {
+      "questions": [
+        {
+          "id": "gh_product_select",
+          "text": "Which specific Growth Hormone peptide?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Sermorelin",
+              "value": "gh_sermorelin",
+              "next_module": "gh_igf"
+            },
+            {
+              "label": "CJC-1295 / Ipamorelin",
+              "value": "gh_cjc",
+              "next_module": "gh_igf"
+            },
+            {
+              "label": "Tesamorelin",
+              "value": "gh_tesamorelin",
+              "next_module": "gh_igf"
+            }
+          ]
+        }
+      ]
+    },
+    "mod_repair_select": {
+      "questions": [
+        {
+          "id": "repair_product_select",
+          "text": "Which Repair & Recovery peptide?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "BPC-157",
+              "value": "repair_bpc",
+              "next_module": "bpc_157"
+            },
+            {
+              "label": "TB-500",
+              "value": "repair_tb500",
+              "next_module": "angiogenic"
+            },
+            {
+              "label": "Wolverine Stack (BPC-157 + TB-500)",
+              "value": "repair_wolverine",
+              "next_module": "angiogenic"
+            },
+            {
+              "label": "GHK-Cu (Skin/Hair)",
+              "value": "repair_ghk",
+              "next_module": "ghk_cu"
+            }
+          ]
+        }
+      ]
+    },
+    "mod_weight_select": {
+      "questions": [
+        {
+          "id": "weight_product_select",
+          "text": "Which GLP-1 / Weight Loss peptide?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Semaglutide",
+              "value": "glp1_sema",
+              "next_module": "glp1"
+            },
+            {
+              "label": "Tirzepatide",
+              "value": "glp1_tirz",
+              "next_module": "glp1"
+            },
+            {
+              "label": "Retatrutide",
+              "value": "glp1_reta",
+              "next_module": "glp1"
+            }
+          ]
+        }
+      ]
+    },
+    "mod_sex_select": {
+      "questions": [
+        {
+          "id": "sex_product_select",
+          "text": "Which Sexual Health peptide?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "PT-141",
+              "value": "sex_pt141",
+              "next_module": "pt_141"
+            }
+          ]
+        }
+      ]
+    },
+    "mod_nutrient_select": {
+      "questions": [
+        {
+          "id": "nutrient_product_select",
+          "text": "Which Nutrient Injection are you interested in?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Glutathione",
+              "value": "nutrient_glutathione",
+              "next_module": "glutathione_screening"
+            },
+            {
+              "label": "NAD+",
+              "value": "nutrient_nad"
+            },
+            {
+              "label": "B12 (Methylcobalamin)",
+              "value": "nutrient_b12"
+            },
+            {
+              "label": "Lipo-C (MIC + B12)",
+              "value": "nutrient_lipo"
+            }
+          ]
+        }
+      ]
+    },
+    "bpc_157": {
+      "questions": [
+        {
+          "id": "bpc_conditions",
+          "text": "For BPC-157 Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult"
+            },
+            {
+              "label": "Autoimmune Disorders",
+              "value": "autoimmune",
+              "flag": "stop",
+              "message": "BPC-157 is contraindicated with Autoimmune Disorders."
+            },
+            {
+              "label": "Clotting Disorders",
+              "value": "clotting",
+              "flag": "stop",
+              "message": "BPC-157 is contraindicated with Clotting Disorders."
+            },
+            {
+              "label": "Medicated High blood pressure",
+              "value": "high_bp_med",
+              "flag": "consult"
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "ghk_cu": {
+      "questions": [
+        {
+          "id": "wilsons_disease",
+          "text": "Have you been diagnosed with Copper Metabolism Disorders (Wilson’s Disease)?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop"
+          }
+        },
+        {
+          "id": "skin_sensitivity",
+          "text": "Do you have known skin sensitivity?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "consult"
+          }
+        }
+      ]
+    },
+    "gh_igf": {
+      "questions": [
+        {
+          "id": "gh_conditions",
+          "text": "For Growth Hormone Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Retinopathy",
+              "value": "retinopathy",
+              "flag": "consult",
+              "message": "Retinopathy is Contraindicated with HGH and its derivatives"
+            },
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult"
+            },
+            {
+              "label": "Pituitary disorders or Endocrine Conditions (Thyroid, Pancreas, Addison’s)",
+              "value": "endocrine",
+              "flag": "consult"
+            },
+            {
+              "label": "Hormone Sensitive conditions (Cushings, PCOS, Thyroid)",
+              "value": "hormone_sensitive",
+              "flag": "consult"
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "angiogenic": {
+      "questions": [
+        {
+          "id": "angio_conditions",
+          "text": "For Repair Peptide Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Autoimmune disease",
+              "value": "autoimmune",
+              "flag": "stop"
+            },
+            {
+              "label": "Uncontrolled diabetes",
+              "value": "uncontrolled_diabetes",
+              "flag": "stop"
+            },
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult"
+            },
+            {
+              "label": "Abnormal Tissue Growth",
+              "value": "abnormal_tissue",
+              "flag": "consult"
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "pt_141": {
+      "questions": [
+        {
+          "id": "pt141_heart",
+          "text": "Do you have a history of uncontrolled high blood pressure or significant cardiovascular disease?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop",
+            "message": "PT-141 can raise blood pressure and is contraindicated in uncontrolled hypertension."
+          }
+        }
+      ]
+    },
+    "glp1": {
+      "questions": [
+        {
+          "id": "glp1_thyroid",
+          "text": "Do you have a personal or family history of Medullary Thyroid Carcinoma (MTC) or Multiple Endocrine Neoplasia syndrome type 2 (MEN 2)?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "stop",
+            "message": "GLP-1 agonists are contraindicated with a history of MTC or MEN 2."
+          }
+        },
+        {
+          "id": "glp1_pancreas",
+          "text": "Do you have a history of Pancreatitis?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "consult"
+          }
+        },
+        {
+          "id": "glp1_kidney",
+          "text": "Do you have a history of Kidney Disease/Failure?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "consult"
+          }
+        }
+      ]
+    },
+    "glutathione_screening": {
+      "questions": [
+        {
+          "id": "sulfa_allergy",
+          "text": "Do you have a known Sulfa Allergy?",
+          "type": "yes_no",
+          "flag": {
+            "yes": "consult",
+            "message": "Glutathione is often compounded with sulfur-containing amino acids. Check formulation."
+          }
+        }
+      ]
+    }
+  }
+}
