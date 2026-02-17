@@ -65,6 +65,11 @@
               "next_module": "mod_sex_select"
             },
             {
+              "label": "Mitochondrial Health (MOTS-c, SS-31, SLU-PP-332)",
+              "value": "cat_mito",
+              "next_module": "mod_mito_select"
+            },
+            {
               "label": "Nutrient Injections (Glutathione, NAD+, B12)",
               "value": "cat_nutrient",
               "next_module": "mod_nutrient_select"
@@ -96,12 +101,47 @@
         {
           "id": "curr_peptide_use",
           "text": "Are you currently receiving Peptides elsewhere?",
-          "type": "yes_no",
+          "type": "single_choice",
+          "options": [
+            {
+              "label": "YES",
+              "value": "yes"
+            },
+            {
+              "label": "NO",
+              "value": "no"
+            }
+          ],
           "follow_up": {
             "yes": {
-              "id": "curr_peptide_details",
-              "text": "What dosage form (injectable, oral, other) and dose?",
-              "type": "text"
+              "text": "Please provide details:",
+              "fields": [
+                {
+                  "id": "curr_peptide_names",
+                  "label": "Peptide Name(s)",
+                  "type": "text",
+                  "placeholder": "e.g., BPC-157"
+                },
+                {
+                  "id": "curr_peptide_form",
+                  "label": "Form",
+                  "type": "select",
+                  "options": [
+                    "Injectable",
+                    "Oral",
+                    "Troche",
+                    "Cream",
+                    "Nasal Spray",
+                    "Other"
+                  ]
+                },
+                {
+                  "id": "curr_peptide_dose",
+                  "label": "Current Dose",
+                  "type": "text",
+                  "placeholder": "e.g., 500mcg daily"
+                }
+              ]
             }
           }
         },
@@ -109,12 +149,15 @@
           "id": "severe_allergy",
           "text": "Have you ever had a severe allergic reaction to Peptides?",
           "type": "yes_no",
+          "flag": {
+            "yes": "consult",
+            "message": "History of severe allergic reaction to peptides requires physician review."
+          },
           "follow_up": {
             "yes": {
               "id": "allergy_details",
               "text": "Which ones?",
-              "type": "text",
-              "flag": "consult"
+              "type": "text"
             }
           }
         },
@@ -123,7 +166,8 @@
           "text": "Do you currently have cancer or a history of cancer?",
           "type": "yes_no",
           "flag": {
-            "yes": "stop"
+            "yes": "stop",
+            "message": "Active or history of cancer is a contraindication for peptide therapy."
           }
         },
         {
@@ -131,7 +175,8 @@
           "text": "Are you Pregnant or Breastfeeding?",
           "type": "yes_no",
           "flag": {
-            "yes": "stop"
+            "yes": "stop",
+            "message": "Pregnancy or breastfeeding is a contraindication for peptide therapy."
           }
         },
         {
@@ -148,13 +193,47 @@
           "text": "Have you been diagnosed with severe heart condition, uncontrolled high blood pressure, kidney disease, or liver disease?",
           "type": "yes_no",
           "flag": {
-            "yes": "stop"
+            "yes": "stop",
+            "message": "Severe uncontrolled cardiovascular, liver, or kidney disease is a contraindication."
           }
         }
       ]
     }
   ],
   "product_modules": {
+    "current_peptide_details": {
+      "questions": [
+        {
+          "id": "curr_peptide_names",
+          "text": "Which peptide(s) are you currently taking?",
+          "type": "text"
+        },
+        {
+          "id": "curr_peptide_form",
+          "text": "What form are these peptides?",
+          "type": "single_choice",
+          "options": [
+            {
+              "label": "Injectable",
+              "value": "injectable"
+            },
+            {
+              "label": "Oral",
+              "value": "oral"
+            },
+            {
+              "label": "Other",
+              "value": "other"
+            }
+          ]
+        },
+        {
+          "id": "curr_peptide_dose",
+          "text": "What is your current dose?",
+          "type": "text"
+        }
+      ]
+    },
     "mod_gh_select": {
       "questions": [
         {
@@ -196,12 +275,12 @@
             {
               "label": "TB-500",
               "value": "repair_tb500",
-              "next_module": "angiogenic"
+              "next_module": "tb_500"
             },
             {
               "label": "Wolverine Stack (BPC-157 + TB-500)",
               "value": "repair_wolverine",
-              "next_module": "angiogenic"
+              "next_module": "repair_wolverine"
             },
             {
               "label": "GHK-Cu (Skin/Hair)",
@@ -233,6 +312,32 @@
               "label": "Retatrutide",
               "value": "glp1_reta",
               "next_module": "glp1"
+            }
+          ]
+        }
+      ]
+    },
+    "mod_mito_select": {
+      "questions": [
+        {
+          "id": "mito_product_select",
+          "text": "Which Mitochondrial Health peptide?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "MOTS-c",
+              "value": "mito_mots",
+              "next_module": "mitochondrial"
+            },
+            {
+              "label": "SS-31",
+              "value": "mito_ss31",
+              "next_module": "mitochondrial"
+            },
+            {
+              "label": "SLU-PP-332",
+              "value": "mito_slu",
+              "next_module": "mitochondrial"
             }
           ]
         }
@@ -292,7 +397,8 @@
             {
               "label": "Diabetes or poor glycemic control",
               "value": "diabetes",
-              "flag": "consult"
+              "flag": "consult",
+              "message": "Diabetes or poor glycemic control requires physician review for BPC-157."
             },
             {
               "label": "Autoimmune Disorders",
@@ -309,7 +415,98 @@
             {
               "label": "Medicated High blood pressure",
               "value": "high_bp_med",
-              "flag": "consult"
+              "flag": "consult",
+              "message": "Medicated High Blood Pressure requires physician review for BPC-157."
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "tb_500": {
+      "questions": [
+        {
+          "id": "tb500_conditions",
+          "text": "For TB-500 Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult",
+              "message": "Diabetes or poor glycemic control requires physician review for TB-500."
+            },
+            {
+              "label": "Autoimmune Disorders",
+              "value": "autoimmune",
+              "flag": "stop",
+              "message": "TB-500 is contraindicated with Autoimmune Disorders."
+            },
+            {
+              "label": "Clotting Disorders",
+              "value": "clotting",
+              "flag": "stop",
+              "message": "TB-500 is contraindicated with Clotting Disorders."
+            },
+            {
+              "label": "Abnormal Tissue Growth",
+              "value": "abnormal_tissue",
+              "flag": "consult",
+              "message": "Abnormal Tissue Growth requires physician review for TB-500."
+            },
+            {
+              "label": "Medicated High blood pressure",
+              "value": "high_bp_med",
+              "flag": "consult",
+              "message": "Medicated High Blood Pressure requires physician review for TB-500."
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "repair_wolverine": {
+      "questions": [
+        {
+          "id": "wolverine_conditions",
+          "text": "For Wolverine Stack (BPC-157 + TB-500) Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult",
+              "message": "Diabetes or poor glycemic control requires physician review for Wolverine Stack."
+            },
+            {
+              "label": "Autoimmune Disorders",
+              "value": "autoimmune",
+              "flag": "stop",
+              "message": "Wolverine Stack is contraindicated with Autoimmune Disorders."
+            },
+            {
+              "label": "Clotting Disorders",
+              "value": "clotting",
+              "flag": "stop",
+              "message": "Wolverine Stack is contraindicated with Clotting Disorders."
+            },
+            {
+              "label": "Medicated High blood pressure",
+              "value": "high_bp_med",
+              "flag": "consult",
+              "message": "Medicated High Blood Pressure requires physician review for Wolverine Stack."
+            },
+            {
+              "label": "Abnormal Tissue Growth",
+              "value": "abnormal_tissue",
+              "flag": "consult",
+              "message": "Abnormal Tissue Growth requires physician review for Wolverine Stack."
             },
             {
               "label": "None of the above",
@@ -355,17 +552,20 @@
             {
               "label": "Diabetes or poor glycemic control",
               "value": "diabetes",
-              "flag": "consult"
+              "flag": "consult",
+              "message": "Diabetes or poor glycemic control requires physician review for GH peptides."
             },
             {
-              "label": "Pituitary disorders or Endocrine Conditions (Thyroid, Pancreas, Addison’s)",
+              "label": "Pituitary disorders/tumors or Endocrine Conditions (Thyroid, Pancreas, Addison’s)",
               "value": "endocrine",
-              "flag": "consult"
+              "flag": "consult",
+              "message": "Pituitary or Endocrine conditions require physician review for GH peptides."
             },
             {
               "label": "Hormone Sensitive conditions (Cushings, PCOS, Thyroid)",
               "value": "hormone_sensitive",
-              "flag": "consult"
+              "flag": "consult",
+              "message": "Hormone sensitive conditions require physician review for GH peptides."
             },
             {
               "label": "None of the above",
@@ -401,6 +601,39 @@
               "label": "Abnormal Tissue Growth",
               "value": "abnormal_tissue",
               "flag": "consult"
+            },
+            {
+              "label": "None of the above",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "mitochondrial": {
+      "questions": [
+        {
+          "id": "mito_conditions",
+          "text": "For Mitochondrial Peptide Safety: Have you ever been diagnosed or treated for any of the following conditions?",
+          "type": "multiselect",
+          "options": [
+            {
+              "label": "Diabetes or poor glycemic control",
+              "value": "diabetes",
+              "flag": "consult",
+              "message": "Diabetes or poor glycemic control requires physician review for Mitochondrial peptides."
+            },
+            {
+              "label": "History of Cancer",
+              "value": "cancer",
+              "flag": "stop",
+              "message": "Mitochondrial peptides are contraindicated with active cancer."
+            },
+            {
+              "label": "Pregnancy/Breastfeeding",
+              "value": "pregnancy",
+              "flag": "stop",
+              "message": "Mitochondrial peptides are contraindicated during pregnancy/breastfeeding."
             },
             {
               "label": "None of the above",

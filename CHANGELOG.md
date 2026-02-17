@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-02-17
+
+### Added
+- **Smart Logic**: Implemented age verification to automatically flag users under 18.
+- **Mitochondrial Module**: Added specific screening for MOTS-c, SS-31, and SLU-PP-332.
+- **Wolverine Stack**: Created a dedicated safety module for the BPC-157/TB-500 combination.
+- **Inline Fields**: "Current Peptide Use" now reveals inline fields for Name, Form, and Dose without leaving the page.
+- **Detailed PDF**: Clinical summary now includes all inline follow-up details.
+
+### Changed
+- **Contraindications**: Updated "Active Cancer" to "History of Cancer" across all modules for clinical accuracy.
+- **Safety Messaging**: Specific, hard-coded reasons are now displayed for each stop flag (e.g., "Mitochondrial peptides are contraindicated with active cancer").
+- **Stop Screen**: Removed generic "Consult your physician" text to focus on specific disqualification reasons.
+
+### Fixed
+- **Gender Filtering**: "Pregnancy/Breastfeeding" options are now automatically hidden for Male patients in all multiselect questions.
+- **Logic Gaps**: Fixed routing for TB-500 and Repair Stack to ensure correct safety modules are loaded.
+
+## [1.2.0] - 2026-02-17
+
+### Changed
+- **PDF Engine**: Replaced `html2pdf.js` export flow with native browser print (`window.print`) for stable “Save as PDF” output.
+- **Runtime**: Removed dependency on a PDF backend endpoint; app can run from any static web server.
+
 ## [1.0.0] - 2026-02-16
 
 ### Added
@@ -18,5 +42,4 @@ All notable changes to this project will be documented in this file.
 - **Clarity**: Updated medical history questions to be specific to the product class (e.g., "For Growth Hormone Safety: Have you ever...").
 
 ### Fixed
-- **PDF Layout**: Fixed content clipping issues by adjusting print width and enforcing text wrapping.
 - **Alignment**: improved grid alignment for option cards to center orphan items.

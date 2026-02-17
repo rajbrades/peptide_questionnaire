@@ -240,9 +240,57 @@ input[type="text"]:focus {
     padding-bottom: 10px;
 }
 
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.report-table tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.report-cell-label {
+    width: 68%;
+    padding: 12px 10px 12px 0;
+    font-weight: 600;
+    color: #555;
+    vertical-align: top;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.report-cell-value {
+    width: 32%;
+    padding: 12px 0 12px 10px;
+    font-weight: 700;
+    color: black;
+    text-align: right;
+    vertical-align: top;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.report-followup-row {
+    background-color: #fcfcfc;
+    border-bottom: 1px dashed #eee;
+}
+
+.report-followup-label {
+    padding-left: 20px;
+    font-weight: 400;
+    font-size: 0.9em;
+}
+
+.report-followup-value {
+    font-size: 0.9em;
+}
+
 .report-row {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
     padding: 12px 0;
     border-bottom: 1px solid #f0f0f0;
 }
@@ -250,15 +298,20 @@ input[type="text"]:focus {
 .report-label {
     font-weight: 600;
     color: #555;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .report-value {
     font-weight: 700;
     color: black;
     text-align: right;
-    max-width: 50%;
-    word-wrap: break-word;
-    word-break: break-word;
+    flex: 0 0 35%;
+    min-width: 140px;
+    max-width: 260px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
 }
 
 /* Animations */
@@ -282,5 +335,87 @@ input[type="text"]:focus {
 
     .question-text {
         font-size: 1.5rem;
+    }
+
+    .report-row {
+        display: block;
+    }
+
+    .report-value {
+        text-align: left;
+        min-width: 0;
+        max-width: none;
+        margin-top: 6px;
+    }
+
+    .report-table,
+    .report-table tbody,
+    .report-table tr,
+    .report-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .report-cell-label,
+    .report-cell-value {
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+        text-align: left;
+    }
+
+    .report-cell-value {
+        padding-top: 0;
+    }
+}
+
+@page {
+    size: Letter;
+    margin: 0.5in;
+}
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .app-container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        min-height: auto;
+    }
+
+    .header,
+    #next-btn,
+    #download-btn,
+    .btn {
+        display: none !important;
+    }
+
+    #quiz-container {
+        margin: 0;
+        padding: 0;
+    }
+
+    #clinical-report {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .report-table tr,
+    .report-followup-row {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 }

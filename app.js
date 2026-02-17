@@ -128,14 +128,40 @@ class QuestionnaireEngine {
                     </label>
                 `;
             });
+            // Support inline follow-up for single_choice
+            optionsContainer.addEventListener('change', (e) => {
+                this.handleFollowUpDisplay(currentQ, e.target.value, qBlock);
+            });
+
         } else if (currentQ.type === 'multiselect') {
+            const sex = this.answers['patient_sex'];
             currentQ.options.forEach(opt => {
+                // Filter out Pregnancy for Males
+                if (sex === 'male' && opt.value === 'pregnancy') {
+                    return;
+                }
+
                 optionsContainer.innerHTML += `
                     <label class="option-card">
                         <input type="checkbox" name="${currentQ.id}" value="${opt.value}">
                         <div class="card-display">${opt.label}</div>
                     </label>
                 `;
+            });
+
+            optionsContainer.addEventListener('change', (e) => {
+                if (e.target.type !== 'checkbox') return;
+
+                const allBoxes = optionsContainer.querySelectorAll(`input[name="${currentQ.id}"]`);
+                if (e.target.value === 'none' && e.target.checked) {
+                    allBoxes.forEach(box => {
+                        if (box.value !== 'none') box.checked = false;
+                    });
+                } else if (e.target.value !== 'none' && e.target.checked) {
+                    allBoxes.forEach(box => {
+                        if (box.value === 'none') box.checked = false;
+                    });
+                }
             });
         } else if (currentQ.type === 'text') {
             // Text inputs don't use the grid, so we reset the class/style for this one
@@ -159,10 +185,39 @@ class QuestionnaireEngine {
             const div = document.createElement('div');
             div.className = 'follow-up-input';
             div.style.marginTop = '20px';
-            div.innerHTML = `
-                <div style="font-weight:600; margin-bottom: 10px;">${followUpConfig.text}</div>
-                <input type="text" name="${followUpConfig.id}" placeholder="Please specify details...">
-            `;
+            div.style.padding = '15px';
+            div.style.backgroundColor = '#f9f9f9';
+            div.style.borderRadius = '8px';
+
+            if (followUpConfig.text) {
+                div.innerHTML += `<div style="font-weight:600; margin-bottom: 10px;">${followUpConfig.text}</div>`;
+            }
+
+            if (followUpConfig.fields) {
+                // Render multiple fields
+                followUpConfig.fields.forEach(field => {
+                    const fieldWrapper = document.createElement('div');
+                    fieldWrapper.style.marginBottom = '10px';
+
+                    const label = `<label style="display:block; font-size:0.9em; margin-bottom:4px;">${field.label}</label>`;
+                    let inputHtml = '';
+
+                    if (field.type === 'select') {
+                        const opts = field.options.map(o => `<option value="${o}">${o}</option>`).join('');
+                        inputHtml = `<select name="${field.id}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"><option value="">Select...</option>${opts}</select>`;
+                    } else {
+                        inputHtml = `<input type="text" name="${field.id}" placeholder="${field.placeholder || ''}" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">`;
+                    }
+
+                    fieldWrapper.innerHTML = label + inputHtml;
+                    div.appendChild(fieldWrapper);
+                });
+            } else {
+                // Legacy / Single Text capability
+                div.innerHTML += `
+                    <input type="text" name="${followUpConfig.id}" placeholder="Please specify details..." style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;">
+                `;
+            }
             container.appendChild(div);
         }
     }
@@ -188,6 +243,10 @@ class QuestionnaireEngine {
                 alert('Please select at least one option.');
                 return;
             }
+            if (selected.includes('none') && selected.length > 1) {
+                alert('"None of the above" cannot be selected with other options.');
+                return;
+            }
             value = selected;
         } else if (currentQ.type === 'text' || currentQ.type === 'date') {
             value = inputs[0].value;
@@ -197,16 +256,25 @@ class QuestionnaireEngine {
             }
         }
 
-        // Validate Follow-up Input if visible
-        const followUpInput = document.querySelector('.follow-up-input input');
-        if (followUpInput && followUpInput.offsetParent !== null) { // Check if visible
-            if (!followUpInput.value.trim()) {
-                alert('Please provide details for your selection.');
-                followUpInput.focus();
+        // Validate Follow-up Inputs if visible
+        const followUpContainer = document.querySelector('.follow-up-input');
+        if (followUpContainer) {
+            const subInputs = followUpContainer.querySelectorAll('input, select');
+            let allValid = true;
+            subInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allValid = false;
+                    input.style.borderColor = 'red';
+                } else {
+                    input.style.borderColor = '#ccc';
+                    this.answers[input.name] = input.value;
+                }
+            });
+
+            if (!allValid) {
+                alert('Please provide details for the additional fields.');
                 return;
             }
-            // Save follow-up answer
-            this.answers[followUpInput.name] = followUpInput.value;
         }
 
         // Match the selected option to get its config (for next_module logic)
@@ -229,7 +297,43 @@ class QuestionnaireEngine {
             }
         }
 
+        // Avoid redundant Wolverine screening when BPC-157 + TB-500 are both explicitly selected.
+        if (currentQ.id === 'repair_product_select' && Array.isArray(value)) {
+            const selected = new Set(value);
+            const hasWolverine = selected.has('repair_wolverine');
+            const hasBpcAndTb500 = selected.has('repair_bpc') && selected.has('repair_tb500');
+
+            if (hasWolverine && hasBpcAndTb500) {
+                nextModules = nextModules.filter(modKey => modKey !== 'repair_wolverine');
+            }
+        }
+
         this.answers[currentQ.id] = value;
+
+        // LOGIC: Check Age for Minors (<18)
+        if (currentQ.id === 'patient_dob') {
+            const birthDate = new Date(value);
+            if (Number.isNaN(birthDate.getTime())) {
+                alert('Please enter a valid date of birth.');
+                return;
+            }
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                this.flags.push({
+                    type: 'stop',
+                    reason: 'Must be 18 years or older to receive peptide therapy.',
+                    questionId: currentQ.id
+                });
+                this.showStopScreen(this.flags.filter(f => f.type === 'stop'));
+                return;
+            }
+        }
 
         // PROCESS LOGIC & FLAGS
         this.processLogic(currentQ, value);
@@ -262,7 +366,14 @@ class QuestionnaireEngine {
             this.flags.push({ type: flagType, reason: msg, questionId: question.id });
         }
 
-        // 2. Multiselect Flags
+        // 2. Follow-up-triggered flags
+        if (!Array.isArray(answer) && question.follow_up && question.follow_up[answer] && question.follow_up[answer].flag) {
+            const followUp = question.follow_up[answer];
+            const msg = followUp.message || question.flag?.message || `Flagged on ${question.text}`;
+            this.flags.push({ type: followUp.flag, reason: msg, questionId: question.id });
+        }
+
+        // 3. Multiselect Flags
         if (question.type === 'multiselect' && Array.isArray(answer)) {
             question.options.forEach(opt => {
                 if (answer.includes(opt.value)) {
@@ -301,7 +412,6 @@ class QuestionnaireEngine {
                 <ul style="text-align: left; display: inline-block;">
                     ${reasons.map(r => `<li>${r.reason}</li>`).join('')}
                 </ul>
-                <p>Please consult with your primary care physician.</p>
             </div>
         `;
         this.ui.nextBtn.style.display = 'none';
@@ -313,9 +423,44 @@ class QuestionnaireEngine {
         // Collect consult flags
         const consults = this.flags.filter(f => f.type === 'consult');
         const timestamp = new Date().toLocaleString();
+        const patientName = this.answers.patient_name || '-';
+        const patientDob = this.answers.patient_dob || '-';
+        const patientSex = this.answers.patient_sex ? (this.answers.patient_sex === 'male' ? 'Male' : 'Female') : '-';
+
+        const escapeHtml = (value) => String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const formatAnswer = (question, answer) => {
+            if (answer === null || answer === undefined || answer === '') return '-';
+            if (question.options) {
+                if (Array.isArray(answer)) {
+                    return answer.map(val => {
+                        const opt = question.options.find(o => o.value === val);
+                        return opt ? opt.label : val;
+                    }).join(', ');
+                }
+                const opt = question.options.find(o => o.value === answer);
+                const value = opt ? opt.label : answer;
+                if (typeof value === 'string' && value.toLowerCase() === 'yes') return 'Yes';
+                if (typeof value === 'string' && value.toLowerCase() === 'no') return 'No';
+                return value;
+            }
+
+            if (Array.isArray(answer)) return answer.join(', ');
+            if (answer === 'yes') return 'Yes';
+            if (answer === 'no') return 'No';
+            return answer;
+        };
+
+        const consultReasonSet = new Set(consults.map(c => c.reason));
+        const consultReasons = Array.from(consultReasonSet);
 
         let reportHTML = `
-            <div id="clinical-report" style="background: white; padding: 20px;">
+            <div id="clinical-report" style="background: white; padding: 20px; color: #111; font-family: Arial, sans-serif;">
                 <div style="text-align: center; margin-bottom: 20px;">
                      <img src="10X Health System_logo1.png" style="max-height: 50px;">
                 </div>
@@ -323,58 +468,85 @@ class QuestionnaireEngine {
                     <h2 style="margin-top: 0;">Peptide Intake Summary</h2>
                     <p>Date: ${timestamp}</p>
                 </div>
+                <div style="margin-bottom: 18px; border: 1px solid #e5e5e5; border-radius: 6px; padding: 12px;">
+                    <div style="font-weight: 700; margin-bottom: 8px;">Patient Snapshot</div>
+                    <div style="font-size: 14px; line-height: 1.6;">
+                        <div><strong>Name:</strong> ${escapeHtml(patientName)}</div>
+                        <div><strong>Date of Birth:</strong> ${escapeHtml(patientDob)}</div>
+                        <div><strong>Biological Sex:</strong> ${escapeHtml(patientSex)}</div>
+                    </div>
+                </div>
                 <div class="clinical-status" style="margin-bottom: 20px;">`;
 
-        if (consults.length > 0) {
+        if (consultReasons.length > 0) {
             reportHTML += `
                 <div class="warning">
-                    <strong>⚠️ PHYSICIAN REVIEW REQUIRED</strong>
-                    <ul>${consults.map(c => `<li>${c.reason}</li>`).join('')}</ul>
+                    <strong>PHYSICIAN REVIEW REQUIRED</strong>
+                    <ul>${consultReasons.map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}</ul>
                 </div>`;
         } else {
             reportHTML += `
                 <div style="color: #2e7d32; padding: 15px; border: 1px solid #2e7d32; background: #eaffea; border-radius: 6px; text-align: center;">
-                    <strong>✅ CLEARED FOR PROTOCOL</strong><br>
+                    <strong>CLEARED FOR PROTOCOL</strong><br>
                     No contraindications or consult flags triggered.
                 </div>`;
         }
 
-        reportHTML += `</div><div class="report-section" style="margin-top: 20px;"><h3>Questionnaire Responses</h3>`;
-
+        let responseRowsHTML = '';
         this.history.forEach(q => {
             const answer = this.answers[q.id];
-            let displayAnswer = answer;
+            const displayAnswer = formatAnswer(q, answer);
 
-            // Logic to find human-readable label
-            if (q.options) {
-                if (Array.isArray(answer)) {
-                    // Multiselect
-                    const labels = answer.map(val => {
-                        const opt = q.options.find(o => o.value === val);
-                        return opt ? opt.label : val;
-                    });
-                    displayAnswer = labels.join(', ');
-                } else {
-                    // Single choice
-                    const opt = q.options.find(o => o.value === answer);
-                    if (opt) displayAnswer = opt.label;
-                }
-            } else {
-                if (Array.isArray(answer)) displayAnswer = answer.join(', ');
-            }
-
-            if (displayAnswer === 'yes') displayAnswer = 'Yes';
-            if (displayAnswer === 'no') displayAnswer = 'No';
-
-            reportHTML += `
-                <div class="report-row">
-                    <span class="report-label">${q.text}</span>
-                    <span class="report-value">${displayAnswer || '-'}</span>
-                </div>
+            responseRowsHTML += `
+                <tr>
+                    <td class="report-cell-label">${escapeHtml(q.text)}</td>
+                    <td class="report-cell-value">${escapeHtml(displayAnswer)}</td>
+                </tr>
             `;
+
+            // Append Follow-up Details if applicable
+            // Only applicable for single-value answers that match a follow-up key
+            if (q.follow_up && !Array.isArray(answer) && q.follow_up[answer]) {
+                const config = q.follow_up[answer];
+                if (config.fields) {
+                    config.fields.forEach(field => {
+                        const subAnswer = this.answers[field.id];
+                        if (subAnswer) {
+                            responseRowsHTML += `
+                                <tr class="report-followup-row">
+                                    <td class="report-cell-label report-followup-label">-> ${escapeHtml(field.label)}</td>
+                                    <td class="report-cell-value report-followup-value">${escapeHtml(subAnswer)}</td>
+                                </tr>
+                            `;
+                        }
+                    });
+                } else if (config.id) {
+                    // Legacy single field
+                    const subAnswer = this.answers[config.id];
+                    if (subAnswer) {
+                        const legacyLabel = config.text ? config.text : 'Details';
+                        responseRowsHTML += `
+                            <tr class="report-followup-row">
+                                <td class="report-cell-label report-followup-label">-> ${escapeHtml(legacyLabel)}</td>
+                                <td class="report-cell-value report-followup-value">${escapeHtml(subAnswer)}</td>
+                            </tr>
+                        `;
+                    }
+                }
+            }
         });
 
-        reportHTML += `</div></div>`;
+        reportHTML += `
+            </div>
+            <div class="report-section" style="margin-top: 20px;">
+                <h3>Questionnaire Responses</h3>
+                <table class="report-table">
+                    <tbody>
+                        ${responseRowsHTML}
+                    </tbody>
+                </table>
+            </div>
+        </div>`;
 
         const uiHTML = `
             ${reportHTML}
@@ -385,47 +557,30 @@ class QuestionnaireEngine {
 
         this.ui.container.innerHTML = uiHTML;
         this.ui.nextBtn.style.display = 'none';
+        const header = document.querySelector('.header');
+        if (header) header.style.display = 'none';
 
         // PDF Listener
         setTimeout(() => {
             const btn = document.getElementById('download-btn');
             if (btn) {
                 btn.addEventListener('click', () => {
-                    if (typeof html2pdf === 'undefined') {
-                        alert("Error: PDF library not loaded. Refresh page.");
+                    const source = document.getElementById('clinical-report');
+                    if (!source) {
+                        alert("PDF source not found.");
                         return;
                     }
 
-                    const element = document.getElementById('clinical-report');
+                    const previousTitle = document.title;
+                    const reportDate = new Date().toISOString().split('T')[0];
+                    document.title = `Peptide_Intake_${reportDate}`;
 
-                    // Temporary style for PDF generation to prevent clipping
-                    const originalWidth = element.style.width;
-                    const originalPadding = element.style.padding;
+                    // Browser print dialog supports "Save as PDF" and avoids fragile canvas-based rendering.
+                    window.print();
 
-                    element.style.width = '700px'; // Fit within Letter page width (7.5in * 96dpi = 720px)
-                    element.style.maxWidth = 'none';
-                    element.style.padding = '0'; // Remove padding for print to reduce whitespace
-
-                    const opt = {
-                        margin: 0.5,
-                        filename: `Peptide_Intake_${new Date().toISOString().split('T')[0]}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true },
-                        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                    };
-
-                    html2pdf().set(opt).from(element).save().then(() => {
-                        // Restore original styles
-                        element.style.width = originalWidth;
-                        element.style.maxWidth = '';
-                        element.style.padding = originalPadding;
-                    }).catch(err => {
-                        console.error(err);
-                        alert("PDF Generation Failed");
-                        element.style.width = originalWidth;
-                        element.style.maxWidth = '';
-                        element.style.padding = originalPadding;
-                    });
+                    setTimeout(() => {
+                        document.title = previousTitle;
+                    }, 500);
                 });
             }
         }, 100);

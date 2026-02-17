@@ -7,8 +7,9 @@ A digital intake and screening tool for peptide therapy, designed with a premium
 *   **Dynamic Questionnaire Engine**:  
     *   Driven by a JSON configuration file (`questionnaire_config.json`) for easy updates.
     *   Supports various question types: Single Choice, Multi-select, Yes/No, Text, and Date.
-    *   **Conditional Logic**: Shows/hides questions based on previous answers (e.g., specific screening for specific peptides).
-    *   **Branching Workflows**: Routes users to specific modules based on their product interests.
+    *   **Smart Conditional Logic**: Automatically adapts based on patient profile (e.g., hides "Pregnancy" for males, flags minors <18).
+    *   **Inline Data Capture**: Collects detailed follow-up information (e.g., current medications) without breaking the user flow.
+    *   **Branching Workflows**: Routes users to specific safety modules (Mitochondrial, Wolverine Stack, etc.) based on product interest.
 
 *   **Premium UI/UX**:
     *   Clean, high-contrast "Biohacking" aesthetic (White/Black/Red).
@@ -17,8 +18,8 @@ A digital intake and screening tool for peptide therapy, designed with a premium
     *   Fully responsive design for mobile and desktop.
 
 *   **Safety & Screening**:
-    *   **Contraindication Flags**: Automatically flags "Stop" or "Consult" conditions based on medical history.
-    *   **Specific Screenings**: targeted questions for Growth Hormone, GLP-1s, BPC-157, etc.
+    *   **Clinical Contraindications**: Hard-coded safety stops (e.g., "History of Cancer", "Active Pregnancy") with precise medical reasoning.
+    *   **Modular Protocols**: Dedicated screening logic for complex stacks like BPC-157/TB-500 and Mitochondrial peptides.
 
 *   **PDF Report Generation**:
     *   Generates a professional clinical summary protocol.
@@ -30,7 +31,7 @@ A digital intake and screening tool for peptide therapy, designed with a premium
 ### Prerequisites
 
 *   A modern web browser (Chrome, Safari, Edge, Firefox).
-*   A local web server (recommended for testing JSON loading).
+*   A local web server (recommended for JSON loading in browsers).
 
 ### Installation & Running
 
@@ -41,13 +42,13 @@ A digital intake and screening tool for peptide therapy, designed with a premium
     ```
 
 2.  **Run locally**:
-    Because the app loads a JSON configuration file, it works best when served via a web server (to avoid CORS issues with local file access).
+    Because the app loads a JSON configuration file, it should be served over HTTP.
 
     *   **Using Python (Mac/Linux)**:
         ```bash
-        python3 -m http.server 8000
+        python3 -m http.server 8080
         ```
-        Then open `http://localhost:8000` in your browser.
+        Then open `http://localhost:8080` in your browser.
 
     *   **Using VS Code Live Server**:
         Right-click `index.html` and select "Open with Live Server".
@@ -77,7 +78,7 @@ The entire flow is defined in `questionnaire_config.json`. You can modify this f
 
 *   **frontend**: HTML5, CSS3 (Custom Properties), Vanilla JavaScript (ES6+).
 *   **Libraries**: 
-    *   `html2pdf.js` (for PDF generation)
+    *   Browser native print dialog (`window.print`) for PDF export
     *   Google Fonts (Oswald, Inter)
 
 ## License
